@@ -29,8 +29,6 @@ const authenticatedUser = (username, password)=>{ //returns boolean
         return false;
     }
 
-    
-
 };
 
 //only registered users can login
@@ -68,8 +66,46 @@ regd_users.post("/login", (req,res) => {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
 
+    const isbn = req.params.isbn;
 
+    const review = req.query.review;
+
+    let reviews = books[isbn].reviews
+
+    let currentUser = req.session.authorization.username;
+
+    if(isbn && review){
+        reviews[currentUser] = review;
+        res.status(200).json({message: "The review has been successfully published!"});
+    }else{
+        res.status(404).json({message: "Enter a review and a valid ISBN"})
+    }
     
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+
+    const isbn = req.params.isbn;
+
+    let currentUser = req.session.authorization.username;
+
+    if(books[isbn]){
+        
+        let reviews = books[isbn].reviews;
+
+        if(reviews[currentUser]){
+
+            delete reviews[currentUser];
+            res.status(200).json({message: "Your review has been removed."});
+
+        }else{
+            res.status(404).json({message: "No review exists or has been removed."});
+        }
+
+    }else{
+        res.status(404).json({message: "Enter a valid ISBN"});
+    }
+
 });
 
 module.exports.authenticated = regd_users;
