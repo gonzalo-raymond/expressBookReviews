@@ -1,18 +1,25 @@
 const express = require('express');
 let books = require("./booksdb.js");
-let isValid = require("./auth_users.js").isValid;
+let isAvailable = require("./auth_users.js").isAvailable;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
-function insertSpaces(string) {
-    string = string.replace(/([a-z])([A-Z])/g, '$1 $2');
-    string = string.replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
-    return string;
-}
-
 public_users.post("/register", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+
+    const username = req.body.username;
+    const password = req.body.password;
+
+    if(username && password){
+        if(isAvailable(username)){
+            users.push({"username": username, "password": password});
+            return res.status(200).json({message: "User successfully registred!"});
+        }else{
+            return res.status(403).json({message: "The username is already in use, enter a different one."});
+        }
+    }else{
+        return res.status(404).json({message: "Unable to register the user, please enter a user name and password."});
+    }
+
 });
 
 // Get the book list available in the shop
@@ -36,7 +43,7 @@ public_users.get('/isbn/:isbn',function (req, res) {
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
 
-    const author = insertSpaces(req.params.author);
+    const author = req.params.author;
 
     let isbns = Object.keys(books);
 
@@ -53,7 +60,7 @@ public_users.get('/author/:author',function (req, res) {
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
 
-    const title = insertSpaces(req.params.title);
+    const title = req.params.title;
 
     let isbns = Object.keys(books);
 
